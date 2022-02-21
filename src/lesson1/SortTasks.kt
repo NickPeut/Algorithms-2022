@@ -2,6 +2,10 @@
 
 package lesson1
 
+import java.io.File
+import kotlin.math.abs
+import kotlin.math.min
+
 /**
  * Сортировка времён
  *
@@ -97,7 +101,17 @@ fun sortAddresses(inputName: String, outputName: String) {
  * 121.3
  */
 fun sortTemperatures(inputName: String, outputName: String) {
-    TODO()
+    val low = -273
+    val high = 500
+    val input = File(inputName).readLines().map { (it.toDouble() * 10 - low * 10).toInt() }.toIntArray()
+    val sortArray = countingSort(input, (high - low) * 10)
+    File(outputName).bufferedWriter().use {
+        for (i in sortArray) {
+            val out = (i + low * 10) / 10.0
+            it.write("$out")
+            it.newLine()
+        }
+    }
 }
 
 /**
@@ -130,7 +144,32 @@ fun sortTemperatures(inputName: String, outputName: String) {
  * 2
  */
 fun sortSequence(inputName: String, outputName: String) {
-    TODO()
+    val numbers = File(inputName).readLines().map { it.toInt() }
+    val counters = mutableMapOf<Int, Int>()
+    if (numbers.isEmpty()) {
+        File(outputName).bufferedWriter().use {}
+        return
+    }
+    var ans: Pair<Int, Int> = numbers[0] to 1
+    for (i in numbers) {
+        counters[i] = counters.getOrDefault(i, 0) + 1
+        val count = counters[i]
+        if (ans.second < count!! || (ans.second == count && i < ans.first)) {
+            ans = i to count
+        }
+    }
+    File(outputName).bufferedWriter().use {
+        for (num in numbers) {
+            if (num != ans.first) {
+                it.write("$num")
+                it.newLine()
+            }
+        }
+        for (i in 1..ans.second) {
+            it.write("${ans.first}")
+            it.newLine()
+        }
+    }
 }
 
 /**
