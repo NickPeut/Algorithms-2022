@@ -3,8 +3,6 @@
 package lesson1
 
 import java.io.File
-import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * Сортировка времён
@@ -100,6 +98,9 @@ fun sortAddresses(inputName: String, outputName: String) {
  * 99.5
  * 121.3
  */
+// Время О(n)
+// Память О(n+k)
+// где k = (high - low) * 10
 fun sortTemperatures(inputName: String, outputName: String) {
     val low = -273
     val high = 500
@@ -143,6 +144,8 @@ fun sortTemperatures(inputName: String, outputName: String) {
  * 2
  * 2
  */
+// Время О(n)
+// Память О(N)
 fun sortSequence(inputName: String, outputName: String) {
     val numbers = File(inputName).readLines().map { it.toInt() }
     val counters = mutableMapOf<Int, Int>()

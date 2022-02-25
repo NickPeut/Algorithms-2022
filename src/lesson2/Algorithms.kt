@@ -94,8 +94,28 @@ fun josephTask(menNumber: Int, choiceInterval: Int): Int {
  * Если имеется несколько самых длинных общих подстрок одной длины,
  * вернуть ту из них, которая встречается раньше в строке first.
  */
+//Время O(first.length * second.length)
+//Ппамять O(first.length * second.length)
 fun longestCommonSubstring(first: String, second: String): String {
-    TODO()
+    val substrings = mutableListOf<MutableList<Int>>()
+    var maxNum = 0
+    var maxPos = 0 to 0
+    for (i in 0..first.length) {
+        val line = mutableListOf<Int>()
+        for (j in 0..second.length)
+            line.add(
+                if (!(i == 0 || j == 0) && first[i - 1] == second[j - 1]) {
+                    val k = substrings[i - 1][j - 1] + 1
+                    if (k > maxNum) {
+                        maxNum = k
+                        maxPos = i to j
+                    }
+                    k
+                } else 0
+            )
+        substrings.add(line)
+    }
+    return first.substring(maxPos.first - maxNum, maxPos.first)
 }
 
 /**
@@ -109,5 +129,17 @@ fun longestCommonSubstring(first: String, second: String): String {
  * Единица простым числом не считается.
  */
 fun calcPrimesNumber(limit: Int): Int {
-    TODO()
+    if (limit <= 1) return 0
+    var ans = 0
+    val prime = Array(limit + 1) { true }
+    for (i in 2..limit) {
+        if (prime[i]) {
+            for (j in 2 * i..limit step i) {
+                prime[j] = false
+            }
+            ans++
+        }
+    }
+    return ans
 }
+
