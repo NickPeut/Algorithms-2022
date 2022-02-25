@@ -6,11 +6,12 @@ import kotlin.math.max
 // attention: Comparable is supported but Comparator is not
 class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSortedSet<T> {
 
-    private class Node<T>(
+    class Node<T>(
         val value: T
     ) {
         var left: Node<T>? = null
         var right: Node<T>? = null
+        var parent: Node<T>? = null
     }
 
     private var root: Node<T>? = null
@@ -57,10 +58,12 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             comparison < 0 -> {
                 assert(closest.left == null)
                 closest.left = newNode
+                newNode.parent = closest
             }
             else -> {
                 assert(closest.right == null)
                 closest.right = newNode
+                newNode.parent = closest
             }
         }
         size++
@@ -79,8 +82,38 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
      *
      * Средняя
      */
+    //Производительность O(N) - полностью зависит от find(). Т.к. дерево без балансировки, то за линию
+    //Ресурсоемкость O(1)
     override fun remove(element: T): Boolean {
-        TODO()
+        val node = find(element) ?: return false
+        if (node.value != element) return false
+        when {
+            node.left == null -> swap(node, node.right)
+            node.right == null -> swap(node, node.left)
+            else -> {
+                var swapNode = node.right
+                while (swapNode!!.left != null) swapNode = swapNode.left
+                if (swapNode.parent != node) {
+                    swap(swapNode, swapNode.right)
+                    swapNode.right = node.right
+                    swapNode.right!!.parent = swapNode
+                }
+                swap(node, swapNode)
+                swapNode.left = node.left
+                swapNode.left!!.parent = swapNode
+            }
+        }
+        size--
+        return true
+    }
+
+    private fun swap(nodeA: Node<T>, nodeB: Node<T>?) {
+        when {
+            nodeA.parent == null -> root = nodeB
+            nodeA == nodeA.parent!!.right -> nodeA.parent!!.right = nodeB
+            else -> nodeA.parent!!.left = nodeB
+        }
+        if (nodeB != null) nodeA.parent = nodeB.parent
     }
 
     override fun comparator(): Comparator<in T>? =
@@ -90,6 +123,9 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         BinarySearchTreeIterator()
 
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
+        private val stack = Stack<Node<T>>()
+        private var node: Node<T>? = root
+        private var lastReturn: Node<T>? = null
 
         /**
          * Проверка наличия следующего элемента
@@ -102,8 +138,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun hasNext(): Boolean {
-            // TODO
-            throw NotImplementedError()
+            return node != null || !stack.empty()
         }
 
         /**
@@ -120,8 +155,16 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun next(): T {
-            // TODO
-            throw NotImplementedError()
+            while (node != null) {
+                stack.add(node)
+                node = node?.left
+            }
+            if (!hasNext()) throw NoSuchElementException()
+            node = stack.pop()
+            val value = node?.value
+            lastReturn = node!!
+            node = node?.right
+            return value!!
         }
 
         /**
@@ -136,9 +179,12 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Сложная
          */
+        //Производительность O(N) - полностью зависит от find(). Т.к. дерево без балансировки, то за линию
+        //Память O(1)
         override fun remove() {
-            // TODO
-            throw NotImplementedError()
+            if (lastReturn == null) throw IllegalStateException()
+            remove(lastReturn!!.value)
+            lastReturn = null
         }
 
     }
