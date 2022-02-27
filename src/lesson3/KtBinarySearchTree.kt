@@ -7,11 +7,10 @@ import kotlin.math.max
 class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSortedSet<T> {
 
     class Node<T>(
-        val value: T
+        var value: T
     ) {
         var left: Node<T>? = null
         var right: Node<T>? = null
-        var parent: Node<T>? = null
     }
 
     private var root: Node<T>? = null
@@ -58,12 +57,10 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             comparison < 0 -> {
                 assert(closest.left == null)
                 closest.left = newNode
-                newNode.parent = closest
             }
             else -> {
                 assert(closest.right == null)
                 closest.right = newNode
-                newNode.parent = closest
             }
         }
         size++
@@ -87,33 +84,59 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
     override fun remove(element: T): Boolean {
         val node = find(element) ?: return false
         if (node.value != element) return false
+        return remove(node)
+    }
+
+    private fun findParent(start: Node<T>, node: Node<T>): Node<T> {
+        val value = node.value
+        val comparison = value.compareTo(start.value)
+        return when {
+            comparison == 0 -> start
+            start.left == node -> start
+            start.right == node -> start
+            comparison < 0 -> start.left?.let { find(it, value) } ?: start
+            else -> start.right?.let { findParent(it, node) } ?: start
+        }
+    }
+
+    private fun remove(node: Node<T>?): Boolean {
+        if (node == null) return false
+        val parent = root?.let { findParent(it, node) }
         when {
-            node.left == null -> swap(node, node.right)
-            node.right == null -> swap(node, node.left)
+            node.left == null && node.right == null -> {
+                if (parent != node) {
+                    if (parent!!.left == node) {
+                        parent.left = null
+                    } else {
+                        parent.right = null
+                    }
+                } else {
+                    root = null
+                }
+            }
+            node.left == null -> {
+                when {
+                    parent == node -> root = node.right
+                    parent!!.left == node -> parent.left = node.right
+                    parent.right == node -> parent.right = node.right
+                }
+            }
+            node.right == null -> {
+                when {
+                    parent == node -> root = node.left
+                    parent!!.left == node -> parent.left = node.left
+                    parent.right == node -> parent.right = node.left
+                }
+            }
             else -> {
                 var swapNode = node.right
                 while (swapNode!!.left != null) swapNode = swapNode.left
-                if (swapNode.parent != node) {
-                    swap(swapNode, swapNode.right)
-                    swapNode.right = node.right
-                    swapNode.right!!.parent = swapNode
-                }
-                swap(node, swapNode)
-                swapNode.left = node.left
-                swapNode.left!!.parent = swapNode
+                node.value = swapNode.value
+                return remove(swapNode)
             }
         }
         size--
         return true
-    }
-
-    private fun swap(nodeA: Node<T>, nodeB: Node<T>?) {
-        when {
-            nodeA.parent == null -> root = nodeB
-            nodeA == nodeA.parent!!.right -> nodeA.parent!!.right = nodeB
-            else -> nodeA.parent!!.left = nodeB
-        }
-        if (nodeB != null) nodeA.parent = nodeB.parent
     }
 
     override fun comparator(): Comparator<in T>? =
@@ -183,7 +206,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         //Память O(1)
         override fun remove() {
             if (lastReturn == null) throw IllegalStateException()
-            remove(lastReturn!!.value)
+            remove(lastReturn)
             lastReturn = null
         }
 

@@ -207,6 +207,41 @@ abstract class AbstractBinarySearchTreeTest {
         }
     }
 
+    protected fun myTestIteratorRemove() {
+        implementationTest { create().iterator().remove() }
+        val controlSet = TreeSet<Int>()
+        for (i in 1..5) {
+            controlSet.add(5 - i)
+
+        }
+        val binarySet = create()
+        for (element in controlSet) {
+            binarySet += element
+        }
+        val iterator = binarySet.iterator()
+
+        controlSet.remove(0)
+        while (iterator.hasNext()) {
+            val element = iterator.next()
+            if (element == 0) {
+                iterator.remove()
+            }
+        }
+
+        for (element in controlSet) {
+            assertTrue(
+                binarySet.contains(element),
+                "The tree doesn't have the element $element from the control set."
+            )
+        }
+        for (element in binarySet) {
+            assertTrue(
+                controlSet.contains(element),
+                "The tree has the element $element that is not in control set."
+            )
+        }
+    }
+
     protected fun doIteratorRemoveTest() {
         implementationTest { create().iterator().remove() }
         val random = Random()
