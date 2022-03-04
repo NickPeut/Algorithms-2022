@@ -146,7 +146,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         BinarySearchTreeIterator()
 
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
-        private val stack = Stack<Node<T>>()
+        private val stack = ArrayDeque<Node<T>>()
         private var node: Node<T>? = root
         private var lastReturn: Node<T>? = null
 
@@ -161,7 +161,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun hasNext(): Boolean {
-            return node != null || !stack.empty()
+            return node != null || !stack.isEmpty()
         }
 
         /**
